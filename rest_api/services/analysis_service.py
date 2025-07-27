@@ -147,6 +147,7 @@ def save_mongodb(
             "symbol": symbol,
             "analysis_type": analysis_type,
             "analysis_date": analysis_date,
+            "file_size": len(content),
             "created_at": datetime.datetime.now(),
         }
         collection.insert_one(document)
