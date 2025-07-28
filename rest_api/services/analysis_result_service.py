@@ -64,7 +64,13 @@ def get_report_list_date(analysis_date: str) -> Response:
         report_res = list(
             collection.find(
                 {"analysis_date": analysis_date, "analysis_type": "markdown"},
-                {"_id": 1, "filename": 1, "analysis_date": 1, "symbol": 1},
+                {
+                    "_id": 1,
+                    "filename": 1,
+                    "analysis_date": 1,
+                    "symbol": 1,
+                    "file_size": 1,
+                },
             )
         )
     except Exception as _:
