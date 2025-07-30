@@ -102,7 +102,7 @@ services:
 
   # Redis Commander管理界面
   redis-commander:
-    image: rediscommander/redis-commander:latest
+    image: ghcr.io/joeferner/redis-commander:latest
     container_name: tradingagents-redis-commander
     restart: unless-stopped
     ports:
@@ -143,10 +143,10 @@ services:
 # 数据卷定义
 volumes:
   mongodb_data:
-    driver: local
+    external: true
     name: tradingagents_mongodb_data
   redis_data:
-    driver: local
+    external: true
     name: tradingagents_redis_data
 
 # 网络定义
