@@ -3,6 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from rest_api.infrastructure.limiter.redis_limiter import get_redis04_manager
 from tradingagents.utils.logging_manager import get_logger
 
 # 导入日志模块
@@ -24,6 +25,7 @@ def init() -> None:
     check_api()
     check_mangodb()
     check_redis()
+    get_redis04_manager()
 
 
 def check_api() -> None:

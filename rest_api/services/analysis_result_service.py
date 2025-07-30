@@ -13,29 +13,6 @@ db_manager = get_database_manager()
 db_client = get_mongodb_client()[db_manager.mongodb_config["database"]]
 collection = db_client.analysis_reports
 
-# 查询示例 - 获取所有分析报告
-# all_reports = list(collection.find())
-
-# 条件查询 - 获取特定股票的分析报告
-# stock_reports = list(collection.find({"stock_code": "601127"}))
-
-# 投影查询 - 只返回需要的字段（排除_id字段）
-# projected_reports = list(
-#     collection.find(
-#         {"stock_code": "601127"}, {"_id": 0, "title": 1, "analysis_date": 1}
-#     )
-# )
-
-# 排序和限制结果 - 按分析日期降序排列，只取前10条
-# sorted_reports = list(collection.find().sort("analysis_date", -1).limit(10))
-
-# 聚合查询示例 - 按股票代码分组统计报告数量
-# pipeline = [
-#     {"$group": {"_id": "$stock_code", "count": {"$sum": 1}}},
-#     {"$sort": {"count": -1}}
-# ]
-# report_counts = list(collection.aggregate(pipeline))
-
 
 class MongoJSONEncoder(JSONEncoder):
     """
@@ -52,7 +29,7 @@ class MongoJSONEncoder(JSONEncoder):
         return super().default(o)
 
 
-def get_report_list_date(analysis_date: str) -> Response:
+def get_report_list_date(analysis_date: str, weixinid: str) -> Response:
     """
     获取指定日期的报告列表
     Args:
@@ -63,7 +40,11 @@ def get_report_list_date(analysis_date: str) -> Response:
     try:
         report_res = list(
             collection.find(
-                {"analysis_date": analysis_date, "analysis_type": "markdown"},
+                {
+                    "analysis_date": analysis_date,
+                    "analysis_type": "markdown",
+                    "weixinid": weixinid,
+                },
                 {
                     "_id": 1,
                     "filename": 1,
@@ -88,26 +69,7 @@ def get_report_list_date(analysis_date: str) -> Response:
     )
 
 
-def get_report_ids(ids: [str]):
-    """
-    获取指定ID的报告内容
-    Args:
-        ids: 报告ID列表
-    Returns:
-        报告内容列表
-    """
-    report_res = list(
-        collection.find(
-            {"_id": {"$in": [ObjectId(id) for id in ids]}, "analysis_type": "markdown"},
-            {"_id": 1, "content": 1},
-        )
-    )
-    content = report_res[0].get("content", b"").decode("utf-8")
-    print(content)
-    print(json.dumps(report_res, ensure_ascii=False, indent=2, cls=MongoJSONEncoder))
-
-
-def get_report_id(report_id: str) -> Response:
+def get_report_id(report_id: str, weixinid: str) -> Response:
     """
     获取报告内容
     Args:
@@ -118,7 +80,11 @@ def get_report_id(report_id: str) -> Response:
     try:
         report_res = list(
             collection.find(
-                {"_id": ObjectId(report_id), "analysis_type": "markdown"},
+                {
+                    "_id": ObjectId(report_id),
+                    "analysis_type": "markdown",
+                    "weixinid": weixinid,
+                },
                 {"_id": 1, "content": 1},
             )
         )

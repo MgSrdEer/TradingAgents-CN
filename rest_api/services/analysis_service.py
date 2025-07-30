@@ -65,7 +65,7 @@ class AnalysisService:
             formatted_results = format_analysis_results(results)
 
             # 导出并保存
-            export(formatted_results)
+            export(formatted_results, request.weixinid)
         except Exception as e:
             logger.error(f"❌ 分析股票代码的股票信息失败: {e}")
 
@@ -83,7 +83,7 @@ def analysis_service() -> AnalysisService:
 report_exporter = ReportExporter()
 
 
-def export(results: dict[str, Any]) -> None:
+def export(results: dict[str, Any], weixinid: str) -> None:
     """
     导出分析结果
     """
@@ -92,12 +92,12 @@ def export(results: dict[str, Any]) -> None:
         raise RuntimeError("❌ 导出功能需要安装额外依赖包")
 
     # "markdown", "md"
-    export_item(results, {"en": "markdown", "ext": "md"})
-    export_item(results, {"en": "docx", "ext": "docx"})
-    export_item(results, {"en": "pdf", "ext": "pdf"})
+    export_item(results, {"en": "markdown", "ext": "md"}, weixinid)
+    # export_item(results, {"en": "docx", "ext": "docx"}, weixinid)
+    # export_item(results, {"en": "pdf", "ext": "pdf"}, weixinid)
 
 
-def export_item(results: dict[str, Any], extension: dict) -> None:
+def export_item(results: dict[str, Any], extension: dict, weixinid: str) -> None:
     """
     导出分析结果的项目。
     """
@@ -116,6 +116,7 @@ def export_item(results: dict[str, Any], extension: dict) -> None:
                 symbol=stock_symbol,
                 analysis_type=extension.get("en"),
                 analysis_date=results.get("analysis_date"),
+                weixinid=weixinid,
             )
         else:
             logger.error(f"❌ {extension.get('en')}导出失败，content为空")
@@ -126,7 +127,12 @@ def export_item(results: dict[str, Any], extension: dict) -> None:
 
 
 def save_mongodb(
-    filename: str, content: str, symbol: str, analysis_type: str, analysis_date: str
+    filename: str,
+    content: str,
+    symbol: str,
+    analysis_type: str,
+    analysis_date: str,
+    weixinid: str,
 ) -> None:
     """
     保存分析结果到MongoDB。
@@ -149,6 +155,7 @@ def save_mongodb(
             "analysis_date": analysis_date,
             "file_size": len(content),
             "created_at": datetime.datetime.now(),
+            "weixinid": weixinid,
         }
         collection.insert_one(document)
     except Exception as e:
