@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Streamlit Web 应用服务
+  rest_api:
+    build:
+      context: .
+      dockerfile: ./rest_api/Dockerfile
+    image: tradingagents-cn-rest-api:1.0.1
+    container_name: tradingagents-rest-api
+    ports:
+      - "8503:8503"
+    volumes:
+      - .env:/app/.env
+      - ./tradingagents:/app/tradingagents
+      - ./scripts:/app/scripts
+      # 日志目录映射 - 重要：将容器内日志映射到当前项目的logs目录
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      # 时区配置
+      TZ: "Asia/Shanghai"
+      # 日志配置
+      TRADINGAGENTS_LOG_LEVEL: "INFO"
+      TRADINGAGENTS_LOG_DIR: "/app/logs"
+      TRADINGAGENTS_LOG_FILE: "/app/logs/tradingagents.log"
+      TRADINGAGENTS_LOG_MAX_SIZE: "100MB"
+      TRADINGAGENTS_LOG_BACKUP_COUNT: "5"
+      # Docker专用数据库配置（覆盖.env中的本地配置）
+      TRADINGAGENTS_MONGODB_URL: mongodb://admin:tradingagents123@mongodb:27017/tradingagents?authSource=admin
+      TRADINGAGENTS_REDIS_URL: redis://:tradingagents123@redis:6379
+      TRADINGAGENTS_CACHE_TYPE: redis
+      # Docker环境标识和PDF支持
+      DOCKER_CONTAINER: "true"
+      DISPLAY: ":99"
+    command: ["uvicorn", "rest_api.main:app", "--host", "0.0.0.0", "--port", "8503", "--reload"]
+    # depends_on:
+    #   - mongodb
+    #   - redis
+    networks:
+      - tradingagents-network
+    # 重启策略
+    restart: unless-stopped
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+
+
+# 网络定义，与web共用
+networks:
+  tradingagents-network:
+    driver: bridge
+    name: tradingagents-network
+    external: true
